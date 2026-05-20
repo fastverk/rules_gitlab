@@ -6,7 +6,7 @@
 # rules for authoring `.gitlab-ci.yml` from Starlark.
 module(
     name = "rules_gitlab",
-    version = "0.1.0",
+    version = "0.1.1",
 )
 
 bazel_dep(name = "platforms", version = "1.0.0")
@@ -17,7 +17,7 @@ bazel_dep(name = "rules_shell", version = "0.6.1")
 # rules_uv ships the Python validator dep (check-jsonschema) via
 # its `pip.parse` extension. Consumers of rules_gitlab don't need
 # their own uv setup — the tooling hub here is internal.
-bazel_dep(name = "rules_uv", version = "0.7.1")
+bazel_dep(name = "rules_uv", version = "0.7.3")
 
 # Pick a Python interpreter for the validator binary. 3.12 is the
 # fastverk default; the validator itself is interpreter-agnostic

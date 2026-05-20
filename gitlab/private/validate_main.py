@@ -19,7 +19,38 @@ import argparse
 import sys
 from pathlib import Path
 
+import yaml
+
 from check_jsonschema.cli import main as check_jsonschema_main
+
+
+def _install_gitlab_yaml_tag_tolerance() -> None:
+    """Teach PyYAML to ignore GitLab-specific custom YAML tags.
+
+    GitLab CI YAML uses constructs like `!reference [.aws_env, vars]`
+    and `!file`, `!base64` — non-standard YAML tags that GitLab's
+    server-side parser handles but PyYAML's default loader rejects
+    with `ConstructorError: could not determine a constructor for
+    the tag '!reference'`.
+
+    We register a generic constructor that returns the underlying
+    Python value (string / list / mapping) for any unknown `!tag`,
+    effectively making the parser treat them as no-ops. The JSON
+    Schema validator then sees the structural shape (lists stay
+    lists, etc.) and validates it; it's the trade-off for being
+    able to validate real-world GitLab CI files at all.
+    """
+
+    def _generic_constructor(loader: yaml.Loader, _suffix: str, node: yaml.Node):
+        if isinstance(node, yaml.ScalarNode):
+            return loader.construct_scalar(node)
+        if isinstance(node, yaml.SequenceNode):
+            return loader.construct_sequence(node)
+        return loader.construct_mapping(node)
+
+    for loader_cls in (yaml.Loader, yaml.SafeLoader, yaml.FullLoader):
+        loader_cls.add_multi_constructor("!", _generic_constructor)
+        loader_cls.add_multi_constructor("tag:yaml.org,2002:", _generic_constructor)
 
 
 def main(argv: list[str]) -> int:
@@ -33,6 +64,8 @@ def main(argv: list[str]) -> int:
         help="Path the rule expects the check to write on success.",
     )
     args = ap.parse_args(argv)
+
+    _install_gitlab_yaml_tag_tolerance()
 
     # check-jsonschema's `main` is a click entry point — calls
     # sys.exit() at the end. Pre-build its argv so it exits with

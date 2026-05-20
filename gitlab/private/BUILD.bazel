@@ -13,6 +13,10 @@ py_binary(
     main = "validate_main.py",
     deps = [
         requirement("check-jsonschema"),
+        # Direct dep on PyYAML so the validator wrapper can register
+        # constructors that absorb GitLab's `!reference` / `!file`
+        # custom CI YAML tags before check-jsonschema parses.
+        requirement("PyYAML"),
     ],
     visibility = ["//visibility:public"],
 )

@@ -6,4 +6,9 @@ version = "0.0.0"
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "check-jsonschema>=0.33,<1.0",
+    # The validator wrapper registers PyYAML constructors to absorb
+    # GitLab's custom CI YAML tags (`!reference`, `!file`, etc.).
+    # check-jsonschema pulls PyYAML transitively, but rules_python
+    # only sees deps we declare directly here.
+    "pyyaml>=6.0,<7.0",
 ]

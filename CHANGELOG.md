@@ -4,6 +4,25 @@ All notable changes to rules_gitlab. The format is loosely
 [Keep a Changelog](https://keepachangelog.com/) — version headers
 mirror the published bazel-registry entries.
 
+## 0.1.1 — GitLab custom YAML tags
+
+Real-world `.gitlab-ci.yml` files use non-standard YAML tags
+(`!reference [.aws_environment, before_script]`, `!file`,
+`!base64` …) that GitLab's server-side parser handles but
+PyYAML's default loader rejects with `ConstructorError`.
+
+v0.1.1: the validator wrapper now registers a multi-constructor
+on `!`-prefixed tags that absorbs them as their underlying
+Python value (scalar / sequence / mapping). The JSON Schema
+validator sees the structural shape and validates it as usual —
+the trade-off for being able to lint real GitLab configs at all.
+
+- New direct dep on PyYAML (already a transitive dep of
+  check-jsonschema; pinning it explicitly so the py_binary
+  resolves it cleanly).
+- Bumped rules_uv pin to 0.7.3 (registry-markers handling
+  surfaced when validating savvi-aggregator member lockfiles).
+
 ## 0.1.0 — initial release
 
 Lifted from `savvi/gitlab/` after the rules stabilized against
