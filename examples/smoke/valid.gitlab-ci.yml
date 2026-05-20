@@ -1,0 +1,21 @@
+# Minimal valid `.gitlab-ci.yml` fixture for the smoke test. The
+# JSON Schema is strict enough that even simple variations
+# (mistyped keys, wrong job-prefix usage, etc.) would be flagged —
+# keeping this small lets the diff_test stay sharp.
+stages:
+  - build
+  - test
+
+variables:
+  GREETING: hello
+
+build:
+  stage: build
+  script:
+    - echo "$GREETING from build"
+
+test:
+  stage: test
+  script:
+    - echo "$GREETING from test"
+  coverage: '/^TOTAL\s+\d+/'

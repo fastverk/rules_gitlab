@@ -1,0 +1,18 @@
+load("@rules_gitlab_tooling//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary")
+
+package(default_visibility = ["//gitlab:__subpackages__"])
+
+# Wrapper around `check-jsonschema` invoked by the
+# `gitlab_ci_validate` rule. Brought in via the
+# `@rules_gitlab_tooling` pip hub so consumers don't need their
+# own tooling lockfile.
+py_binary(
+    name = "validate",
+    srcs = ["validate_main.py"],
+    main = "validate_main.py",
+    deps = [
+        requirement("check-jsonschema"),
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,9 @@
+# rules_gitlab internal tooling deps. Pulled into the
+# `@rules_gitlab_tooling` pip hub.
+[project]
+name = "rules-gitlab-tooling"
+version = "0.0.0"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "check-jsonschema>=0.33,<1.0",
+]
