@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("//gitlab:defs.bzl", "gitlab_ci", "gitlab_job", "gitlab_reference")
+load("//gitlab:defs.bzl", "gitlab_ci", "gitlab_job", "gitlab_pages_job", "gitlab_reference")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -9,7 +9,7 @@ package(default_visibility = ["//visibility:public"])
 # golden; `bazel test //examples/generate:...` checks it's current + valid.
 gitlab_ci(
     name = "pipeline",
-    stages = ["build", "test"],
+    stages = ["build", "test", "pages"],
     variables = {"GREETING": "hello"},
     jobs = {
         # Hidden template job + a `!reference` to it (round-trip test).
@@ -25,6 +25,11 @@ gitlab_ci(
             stage = "test",
             script = ['echo "$GREETING from test"'],
             coverage = "/^TOTAL\\s+\\d+/",
+        ),
+        # The generic static-site → GitLab Pages job.
+        "pages": gitlab_pages_job(
+            site = "//docs:site",
+            site_artifact = "bazel-bin/docs/site.tar.gz",
         ),
     },
     write_to = "golden/.gitlab-ci.yml",

@@ -3,6 +3,7 @@
 stages:
   - build
   - test
+  - pages
 variables:
   GREETING: hello
 .setup:
@@ -13,6 +14,17 @@ build:
   before_script: !reference [.setup, before_script]
   script:
     - echo "$GREETING from build"
+pages:
+  stage: pages
+  script:
+    - bazel build //docs:site
+    - rm -rf public && mkdir -p public
+    - tar -xzf bazel-bin/docs/site.tar.gz -C public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 test:
   stage: test
   script:

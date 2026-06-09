@@ -6,7 +6,7 @@
 # rules for authoring `.gitlab-ci.yml` from Starlark.
 module(
     name = "rules_gitlab",
-    version = "0.2.0",
+    version = "0.3.0",
 )
 
 bazel_dep(name = "platforms", version = "1.0.0")

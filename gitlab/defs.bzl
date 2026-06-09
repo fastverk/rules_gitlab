@@ -289,6 +289,65 @@ def gitlab_reference(*parts):
     """
     return {"__gitlab_reference__": list(parts)}
 
+def gitlab_pages_job(
+        site,
+        site_artifact,
+        stage = "pages",
+        strip_components = 0,
+        only_default_branch = True,
+        rules = None,
+        **kwargs):
+    """A GitLab Pages job that publishes a Bazel-built static site.
+
+    GitLab Pages serves the `public/` artifact of a job named `pages`. This
+    builds `site` (a target whose output `site_artifact` is a `.tar.gz` of the
+    site root — e.g. an `mdbook_book` or any `pkg_tar` of HTML) and unpacks it
+    into `public/`. The generic "ship this repo's static site to Pages" job:
+
+        gitlab_ci(
+            name = "ci",
+            stages = ["pages"],
+            jobs = {
+                "pages": gitlab_pages_job(
+                    site = "//docs:site",
+                    site_artifact = "bazel-bin/docs/site.tar.gz",
+                ),
+            },
+        )
+
+    Args:
+      site: the Bazel label (string) that builds the static site.
+      site_artifact: workspace-relative path to the built site `.tar.gz`.
+      stage: the CI stage for the job (default `"pages"`).
+      strip_components: tar `--strip-components`, for archives with a top-level
+        directory. mdbook's output is flat, so the default `0` is correct.
+      only_default_branch: when True (default) and `rules` is unset, restrict
+        the job to the default branch — Pages publishes from a single ref.
+      rules: explicit GitLab `rules:`; overrides `only_default_branch`.
+      **kwargs: any other `gitlab_job` field (needs, variables, image, …).
+
+    Returns:
+      A job dict for use as a `gitlab_ci(jobs = {...})` value. The job name
+      MUST be `"pages"` for GitLab to publish it.
+    """
+    untar = "tar -xzf {a} -C public".format(a = site_artifact)
+    if strip_components:
+        untar += " --strip-components={}".format(strip_components)
+    job_rules = rules
+    if job_rules == None and only_default_branch:
+        job_rules = [{"if": "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"}]
+    return gitlab_job(
+        stage = stage,
+        script = [
+            "bazel build {}".format(site),
+            "rm -rf public && mkdir -p public",
+            untar,
+        ],
+        artifacts = {"paths": ["public"]},
+        rules = job_rules,
+        **kwargs
+    )
+
 def gitlab_ci(
         name,
         stages = [],
