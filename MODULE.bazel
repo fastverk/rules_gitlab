@@ -6,7 +6,7 @@
 # rules for authoring `.gitlab-ci.yml` from Starlark.
 module(
     name = "rules_gitlab",
-    version = "0.3.1",
+    version = "0.3.2",
 )
 
 bazel_dep(name = "platforms", version = "1.0.0")
@@ -40,6 +40,13 @@ uv = use_extension("@rules_uv//uv:extensions.bzl", "uv")
 use_repo(uv, "uv", "uv_source")
 register_toolchains("@rules_uv//uv:uv_toolchain_def")
 
+# The tooling lock (//tooling:uv.lock) pins its wheels from PUBLIC pypi
+# (files.pythonhosted.org) by content hash — portable, needs no auth for
+# any consumer. A consumer whose CI must use a different pypi (a private
+# mirror/proxy or air-gapped index) rewrites the download URLs GLOBALLY via
+# bazel's `--experimental_downloader_config` (+ a `.netrc` for auth) in its
+# system bazelrc; the pinned hashes still match, so it's transparent. No
+# private/savvi registry is baked into this shared rule.
 pip = use_extension("@rules_uv//pip:extensions.bzl", "pip")
 pip.parse(
     hub_name = "rules_gitlab_tooling",
